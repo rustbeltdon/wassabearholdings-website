@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Wassa Bear Holdings</title>
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" type="image/x-icon" href="favicon.ico" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: #050a14;
+      font-family: 'Georgia', serif;
+      color: #e8eef5;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #scene-container {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+    #scene-container canvas { display: block; touch-action: none; }
+
+    /* ─── Top Banner ─── */
+    #banner {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 20;
+      padding: 22px 24px 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: linear-gradient(to bottom,
+        rgba(6,12,24,0.92) 0%, rgba(6,12,24,0.55) 55%, rgba(6,12,24,0) 100%);
+      pointer-events: none;
+      user-select: none;
+      border-bottom: 1px solid rgba(140,180,220,0.07);
+    }
+    #banner h1 {
+      font-family: 'Cinzel', 'Georgia', serif;
+      font-weight: 600;
+      font-size: clamp(1.35rem, 5vw, 3rem);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(240,246,252,0.97);
+      text-shadow: 0 0 55px rgba(150,200,255,0.5), 0 2px 12px rgba(0,0,0,0.75);
+      line-height: 1.18;
+    }
+    #banner .sub {
+      margin-top: 0.7em;
+      font-family: 'Cinzel', 'Georgia', serif;
+      font-weight: 400;
+      font-size: clamp(0.58rem, 1.6vw, 0.8rem);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: rgba(180,212,244,0.62);
+      padding-left: 0.5em;
+    }
+
+    /* ─── Footer ─── */
+    footer {
+      position: fixed;
+      bottom: 0; left: 0;
+      width: 100%;
+      z-index: 20;
+      padding: 13px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      background: linear-gradient(to top, rgba(4,8,16,0.92) 0%, transparent 100%);
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      color: rgba(180,210,240,0.55);
+    }
+    footer a { color: rgba(180,210,240,0.72); text-decoration: none; transition: color 0.2s; pointer-events: auto; }
+    footer a:hover { color: #c8dff5; }
+    .footer-left { display: flex; gap: 18px; flex-wrap: wrap; }
+    .footer-right { text-align: right; }
+
+    #loader {
+      position: fixed; inset: 0; z-index: 30;
+      display: flex; align-items: center; justify-content: center;
+      background: #050a14; color: rgba(180,212,244,0.7);
+      font-family: 'Cinzel', serif; letter-spacing: 0.3em; font-size: 0.8rem;
+      transition: opacity 0.8s ease; text-transform: uppercase;
+    }
+    #loader.hidden { opacity: 0; pointer-events: none; }
+
+    @media (max-width: 600px) {
+      footer { flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 10px 16px; font-size: 0.6rem; }
+      .footer-right { text-align: center; }
+      #banner { padding: 16px 16px 26px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="scene-container"></div>
+
+<header id="banner">
+  <h1>Wassa Bear Holdings</h1>
+</header>
+
+<footer>
+  <div class="footer-left">
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="privacy-policy.html#terms">Terms</a>
+  </div>
+  <div class="footer-right">
+    &copy; 2026 Wassa Bear Holdings LLC &mdash; All Rights Reserved &middot; Registered in Wyoming, USA
+  </div>
+</footer>
+
+<div id="loader">Loading</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const container = document.getElementById('scene-container');
+
+// ─── Renderer ──────────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+container.appendChild(renderer.domElement);
+
+// ─── Scene & Environment ───────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0e2034, 0.022);
+
+// Gradient sky background
+(() => {
+  const c = document.createElement('canvas');
+  c.width = 4; c.height = 512;
+  const g = c.getContext('2d').createLinearGradient(0, 0, 0, 512);
+  g.addColorStop(0.0, '#050a16');
+  g.addColorStop(0.45, '#0b1a33');
+  g.addColorStop(0.72, '#123049');
+  g.addColorStop(1.0, '#1b3a57');
+  const cc = c.getContext('2d');
+  cc.fillStyle = g; cc.fillRect(0, 0, 4, 512);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  scene.background = tex;
+})();
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.06).texture;
+
+// ─── Camera ────────────────────────────────────────────────────────────────────
+const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 300);
+const CAM_TARGET = new THREE.Vector3(0, 1.85, 0.4);
+const CAM_OFFSET = new THREE.Vector3(2.7, 1.05, 6.4);
+
+function placeCamera() {
+  const aspect = window.innerWidth / window.innerHeight;
+  // pull back on portrait / narrow screens so the bear always fits
+  const k = aspect < 1 ? THREE.MathUtils.clamp(1 / aspect, 1, 1.9) : 1;
+  camera.position.copy(CAM_TARGET).add(CAM_OFFSET.clone().multiplyScalar(k));
+  camera.lookAt(CAM_TARGET);
+}
+
+// ─── Lighting ──────────────────────────────────────────────────────────────────
+const hemi = new THREE.HemisphereLight(0xbcd6f0, 0x32506b, 0.7);
+scene.add(hemi);
+
+const key = new THREE.DirectionalLight(0xeaf3ff, 2.2);
+key.position.set(-7, 13, 9);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.near = 1;
+key.shadow.camera.far = 60;
+key.shadow.camera.left = -12;
+key.shadow.camera.right = 12;
+key.shadow.camera.top = 12;
+key.shadow.camera.bottom = -12;
+key.shadow.bias = -0.0008;
+key.shadow.radius = 4;
+scene.add(key);
+
+const rim = new THREE.DirectionalLight(0x5a86bd, 0.7);
+rim.position.set(8, 4, -9);
+scene.add(rim);
+
+// ─── Materials ─────────────────────────────────────────────────────────────────
+const furMat = new THREE.MeshPhysicalMaterial({
+  color: 0xeef4fb,
+  roughness: 0.92,
+  metalness: 0.0,
+  sheen: 1.0,
+  sheenColor: new THREE.Color(0xdfeeff),
+  sheenRoughness: 0.55,
+  clearcoat: 0.0,
+});
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x14161b, roughness: 0.45, metalness: 0.0 });
+const eyeMat  = new THREE.MeshStandardMaterial({ color: 0x0c0e12, roughness: 0.15, metalness: 0.0 });
+const earInMat = new THREE.MeshStandardMaterial({ color: 0xb98e92, roughness: 0.9 });
+const snowMat = new THREE.MeshStandardMaterial({ color: 0xdfeaf4, roughness: 0.95, metalness: 0.0 });
+
+// ─── Polar Bear (procedural, quadruped) ──────────────────────────────────────────
+const bear = new THREE.Group();
+scene.add(bear);
+
+const SPHERE = new THREE.SphereGeometry(1, 32, 24);
+
+function part(group, mat, x, y, z, sx, sy, sz, shadow = true) {
+  const m = new THREE.Mesh(SPHERE, mat);
+  m.position.set(x, y, z);
+  m.scale.set(sx, sy, sz);
+  m.castShadow = shadow;
+  m.receiveShadow = shadow;
+  group.add(m);
+  return m;
+}
+
+// — Torso & masses (bear faces +Z toward camera) —
+part(bear, furMat, 0, 1.70, 0.00, 1.02, 1.00, 1.85);   // torso
+part(bear, furMat, 0, 1.52, 0.10, 0.96, 0.86, 1.70);   // belly
+part(bear, furMat, 0, 2.05, 0.75, 0.86, 0.78, 0.86);   // shoulder hump
+part(bear, furMat, 0, 1.86, -1.45, 0.92, 0.92, 0.74);  // rump
+part(bear, furMat, 0, 1.80, -1.92, 0.22, 0.20, 0.30);  // tail
+
+// — Legs (capsules) + paws —
+const legGeo = new THREE.CapsuleGeometry(0.27, 0.55, 8, 16);
+function leg(x, z, frontPitch) {
+  const g = new THREE.Group();
+  bear.add(g);
+  const upper = new THREE.Mesh(legGeo, furMat);
+  upper.position.set(x, 0.62, z);
+  upper.rotation.x = frontPitch;
+  upper.castShadow = true; upper.receiveShadow = true;
+  g.add(upper);
+  // paw
+  const paw = new THREE.Mesh(SPHERE, furMat);
+  paw.position.set(x, 0.10, z + (frontPitch * 0.4) + 0.12);
+  paw.scale.set(0.34, 0.20, 0.46);
+  paw.castShadow = true; paw.receiveShadow = true;
+  g.add(paw);
+  // toe pads
+  for (let i = -1; i <= 1; i++) {
+    const t = new THREE.Mesh(SPHERE, darkMat);
+    t.position.set(x + i * 0.13, 0.045, z + (frontPitch * 0.4) + 0.42);
+    t.scale.set(0.06, 0.03, 0.07);
+    g.add(t);
+  }
+  return g;
+}
+leg(-0.62, 1.05, 0.06);
+leg(0.62, 1.05, 0.06);
+leg(-0.66, -1.15, -0.04);
+leg(0.66, -1.15, -0.04);
+
+// — Head group (pivots to track the cursor) —
+const headPivot = new THREE.Group();
+headPivot.position.set(0, 2.02, 1.55);
+bear.add(headPivot);
+
+// neck
+part(headPivot, furMat, 0, 0.00, 0.12, 0.56, 0.62, 0.62);
+// skull
+part(headPivot, furMat, 0, 0.20, 0.70, 0.50, 0.52, 0.58);
+// muzzle bridge
+part(headPivot, furMat, 0, 0.10, 1.02, 0.34, 0.34, 0.42);
+// snout
+part(headPivot, furMat, 0, 0.04, 1.30, 0.29, 0.28, 0.40);
+// nose
+part(headPivot, darkMat, 0, 0.10, 1.62, 0.14, 0.11, 0.10);
+
+// ears
+function earAt(sx) {
+  part(headPivot, furMat, sx * 0.30, 0.58, 0.52, 0.18, 0.20, 0.12);
+  part(headPivot, earInMat, sx * 0.30, 0.58, 0.57, 0.10, 0.11, 0.07, false);
+}
+earAt(-1); earAt(1);
+
+// eyes (sit proud on the front of the skull, above & beside the snout)
+function eyeAt(sx) {
+  // dark socket recess for definition
+  part(headPivot, darkMat, sx * 0.30, 0.34, 1.02, 0.135, 0.155, 0.09, false);
+  // glossy eyeball
+  part(headPivot, eyeMat, sx * 0.30, 0.34, 1.07, 0.105, 0.120, 0.085, false);
+  // catch-light highlight
+  const hl = new THREE.Mesh(SPHERE, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  hl.position.set(sx * 0.27, 0.385, 1.14);
+  hl.scale.set(0.03, 0.035, 0.022);
+  headPivot.add(hl);
+  // secondary soft highlight
+  const hl2 = new THREE.Mesh(SPHERE, new THREE.MeshBasicMaterial({ color: 0xbcdcff }));
+  hl2.position.set(sx * 0.33, 0.31, 1.13);
+  hl2.scale.set(0.016, 0.016, 0.012);
+  headPivot.add(hl2);
+}
+eyeAt(-1); eyeAt(1);
+
+// ─── Fur (instanced tufts over the body & head surfaces) ──────────────────────────
+const furStrandGeo = new THREE.ConeGeometry(0.016, 0.12, 4);
+const furStrandMat = new THREE.MeshStandardMaterial({
+  color: 0xf3f8fd, roughness: 0.96, metalness: 0.0, flatShading: true,
+});
+const _up = new THREE.Vector3(0, 1, 0);
+const _dummy = new THREE.Object3D();
+const _n = new THREE.Vector3();
+const _p = new THREE.Vector3();
+const _q = new THREE.Quaternion();
+const _col = new THREE.Color();
+
+function addFur(parent, ellipsoids) {
+  let total = 0;
+  for (const e of ellipsoids) total += e.n;
+  const mesh = new THREE.InstancedMesh(furStrandGeo, furStrandMat, total);
+  mesh.castShadow = true;
+  let idx = 0;
+  for (const e of ellipsoids) {
+    const [cx, cy, cz] = e.c, [sx, sy, sz] = e.s;
+    for (let i = 0; i < e.n; i++) {
+      // random point on the ellipsoid surface
+      const u = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+      if (u.lengthSq() < 1e-5) u.set(0, 1, 0);
+      u.normalize();
+      _p.set(cx + u.x * sx, cy + u.y * sy, cz + u.z * sz);
+      // outward normal of the ellipsoid, with downward sweep + jitter
+      _n.set(u.x / sx, u.y / sy, u.z / sz).normalize();
+      _n.x += (Math.random() - 0.5) * 0.4;
+      _n.y += -0.22 + (Math.random() - 0.5) * 0.3;
+      _n.z += (Math.random() - 0.5) * 0.4;
+      _n.normalize();
+      _p.addScaledVector(_n, 0.02);
+      _q.setFromUnitVectors(_up, _n);
+      _dummy.position.copy(_p);
+      _dummy.quaternion.copy(_q);
+      const len = 0.65 + Math.random() * 1.0;
+      _dummy.scale.set(0.75 + Math.random() * 0.5, len, 0.75 + Math.random() * 0.5);
+      _dummy.updateMatrix();
+      mesh.setMatrixAt(idx, _dummy.matrix);
+      const sh = 0.9 + Math.random() * 0.1;
+      _col.setRGB(sh, sh, Math.min(1, sh * 1.03));
+      mesh.setColorAt(idx, _col);
+      idx++;
+    }
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+const furDense = window.innerWidth < 700 ? 0.5 : 1; // lighter on mobile
+const N = (v) => Math.round(v * furDense);
+
+addFur(bear, [
+  { c: [0, 1.70, 0.00], s: [1.02, 1.00, 1.85], n: N(2800) }, // torso
+  { c: [0, 1.52, 0.10], s: [0.96, 0.86, 1.70], n: N(1700) }, // belly
+  { c: [0, 2.05, 0.75], s: [0.86, 0.78, 0.86], n: N(800)  }, // shoulder hump
+  { c: [0, 1.86, -1.45], s: [0.92, 0.92, 0.74], n: N(800) }, // rump
+  { c: [-0.62, 0.66, 1.05], s: [0.30, 0.52, 0.30], n: N(260) },
+  { c: [ 0.62, 0.66, 1.05], s: [0.30, 0.52, 0.30], n: N(260) },
+  { c: [-0.66, 0.66, -1.15], s: [0.30, 0.52, 0.30], n: N(260) },
+  { c: [ 0.66, 0.66, -1.15], s: [0.30, 0.52, 0.30], n: N(260) },
+]);
+
+addFur(headPivot, [
+  { c: [0, 0.00, 0.12], s: [0.56, 0.62, 0.62], n: N(560) }, // neck
+  { c: [0, 0.20, 0.70], s: [0.50, 0.52, 0.58], n: N(620) }, // skull
+  { c: [0, 0.10, 1.02], s: [0.34, 0.34, 0.42], n: N(180) }, // bridge
+  { c: [0.30, 0.58, 0.52], s: [0.18, 0.20, 0.12], n: N(70) }, // ear L
+  { c: [-0.30, 0.58, 0.52], s: [0.18, 0.20, 0.12], n: N(70) }, // ear R
+]);
+
+// ─── Ground (snow terrain) ───────────────────────────────────────────────────────
+const groundGeo = new THREE.PlaneGeometry(160, 160, 80, 80);
+const gp = groundGeo.attributes.position;
+for (let i = 0; i < gp.count; i++) {
+  const x = gp.getX(i), y = gp.getY(i);
+  const d = Math.sqrt(x * x + y * y);
+  const h = Math.sin(x * 0.25) * Math.cos(y * 0.22) * 0.35
+          + Math.cos(x * 0.12 + y * 0.1) * 0.5
+          - Math.max(0, (d - 4) * 0.015);
+  gp.setZ(i, Math.max(-0.4, h));
+}
+groundGeo.computeVertexNormals();
+const ground = new THREE.Mesh(groundGeo, snowMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = 0;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// snow drifts
+for (let i = 0; i < 16; i++) {
+  const a = (i / 16) * Math.PI * 2 + Math.random();
+  const r = 5 + Math.random() * 9;
+  const d = new THREE.Mesh(SPHERE, snowMat);
+  d.position.set(Math.cos(a) * r, -0.1 + Math.random() * 0.2, Math.sin(a) * r);
+  d.scale.set(0.6 + Math.random(), 0.3 + Math.random() * 0.3, 0.6 + Math.random());
+  d.receiveShadow = true;
+  scene.add(d);
+}
+
+// ─── Snowfall particles ───────────────────────────────────────────────────────────
+function makeFlakeTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.4, 'rgba(230,242,255,0.8)');
+  g.addColorStop(1, 'rgba(230,242,255,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+const SNOW_N = 3500;
+const snowGeo = new THREE.BufferGeometry();
+const snowPos = new Float32Array(SNOW_N * 3);
+const snowVel = new Float32Array(SNOW_N);
+const snowSway = new Float32Array(SNOW_N);
+for (let i = 0; i < SNOW_N; i++) {
+  snowPos[i*3]   = (Math.random() - 0.5) * 70;
+  snowPos[i*3+1] = Math.random() * 45;
+  snowPos[i*3+2] = (Math.random() - 0.5) * 50 - 5;
+  snowVel[i] = 0.02 + Math.random() * 0.05;
+  snowSway[i] = Math.random() * Math.PI * 2;
+}
+snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+const snow = new THREE.Points(snowGeo, new THREE.PointsMaterial({
+  size: 0.14, map: makeFlakeTexture(), transparent: true, opacity: 0.9,
+  depthWrite: false, sizeAttenuation: true, blending: THREE.NormalBlending,
+}));
+scene.add(snow);
+
+// ─── Interaction ───────────────────────────────────────────────────────────────
+const mouse = new THREE.Vector2(0, 0);
+const headTarget = new THREE.Vector2(0, 0);
+const headCur = new THREE.Vector2(0, 0);
+
+window.addEventListener('mousemove', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+});
+window.addEventListener('touchmove', (e) => {
+  const t = e.touches[0];
+  mouse.x = (t.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = (t.clientY / window.innerHeight) * 2 - 1;
+}, { passive: true });
+
+// ─── Resize (robust) ─────────────────────────────────────────────────────────────
+function onResize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  placeCamera();
+}
+window.addEventListener('resize', onResize);
+
+// ─── Loop ──────────────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+function animate() {
+  const t = clock.getElapsedTime();
+
+  // snow
+  const sp = snowGeo.attributes.position.array;
+  for (let i = 0; i < SNOW_N; i++) {
+    sp[i*3+1] -= snowVel[i];
+    sp[i*3]   += Math.sin(t * 0.5 + snowSway[i]) * 0.004;
+    if (sp[i*3+1] < -1) {
+      sp[i*3+1] = 44;
+      sp[i*3]   = (Math.random() - 0.5) * 70;
+      sp[i*3+2] = (Math.random() - 0.5) * 50 - 5;
+    }
+  }
+  snowGeo.attributes.position.needsUpdate = true;
+
+  // idle breathing
+  const breathe = 1 + Math.sin(t * 1.2) * 0.012;
+  bear.scale.set(1, breathe, 1);
+  bear.position.y = Math.sin(t * 1.2) * 0.015;
+
+  // head tracking (smoothed, clamped)
+  headTarget.x = THREE.MathUtils.clamp(mouse.x, -1, 1) * 0.7;   // yaw
+  headTarget.y = THREE.MathUtils.clamp(mouse.y, -1, 1) * 0.38;  // pitch
+  headCur.x += (headTarget.x - headCur.x) * 0.07;
+  headCur.y += (headTarget.y - headCur.y) * 0.07;
+  headPivot.rotation.y = headCur.x;
+  headPivot.rotation.x = headCur.y;
+
+  // whole-body subtle turn toward cursor
+  bear.rotation.y += (mouse.x * 0.14 - bear.rotation.y) * 0.04;
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────────────
+onResize();
+placeCamera();
+animate();
+document.getElementById('loader').classList.add('hidden');
+</script>
+</body>
+</html>
