@@ -63,8 +63,6 @@ npx serve .          # Node
 php -S localhost:8080  # PHP
 ```
 
-> The site is also suitable for **GitHub Pages** — just enable Pages on the `main` branch and
-> the same files are served as‑is.
 
 ---
 
@@ -78,9 +76,6 @@ wassabearholdings-website/
 ├── favicon.ico         # 32×32 raster fallback "W" icon (older browsers / tabs)
 └── README.md           # This document
 ```
-
-Everything is intentionally kept in **single self‑contained files** — no bundler, no
-`node_modules`, no CSS/JS split. Each HTML file embeds its own `<style>` and `<script>`.
 
 ---
 
