@@ -51,7 +51,7 @@ From the project folder:
 
 ```bash
 # Python 3 (no install needed)
-python3 -m http.server 8080
+python3 -m http.server 8080 -d public
 ```
 
 Then open **http://localhost:8080** in any modern browser.
@@ -70,11 +70,12 @@ php -S localhost:8080  # PHP
 
 ```
 wassabearholdings-website/
-├── index.html          # Home page — the entire Three.js 3D scene (HTML + CSS + JS in one file)
-├── privacy-policy.html # Standard no‑cookie privacy policy (self‑contained HTML + CSS)
-├── favicon.svg         # Vector "W" badge icon (preferred by modern browsers)
-├── favicon.ico         # 32×32 raster fallback "W" icon (older browsers / tabs)
-├── grg-lockup-line.svg # Ganges River Group lockup for the footer design credit (CSS mask)
+├── public/                 # Everything served on wassabearholdings.com (deployed as is)
+│   ├── index.html          # Home page: the entire Three.js 3D scene (HTML + CSS + JS in one file)
+│   ├── privacy-policy.html # Standard no cookie privacy policy (self contained HTML + CSS)
+│   ├── favicon.svg         # Vector "W" badge icon (preferred by modern browsers)
+│   ├── favicon.ico         # 32×32 raster fallback "W" icon (older browsers / tabs)
+│   └── grg-lockup-line.svg # Ganges River Group lockup for the footer design credit (CSS mask)
 └── README.md           # This document
 ```
 
