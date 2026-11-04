@@ -74,6 +74,7 @@ wassabearholdings-website/
 ├── privacy-policy.html # Standard no‑cookie privacy policy (self‑contained HTML + CSS)
 ├── favicon.svg         # Vector "W" badge icon (preferred by modern browsers)
 ├── favicon.ico         # 32×32 raster fallback "W" icon (older browsers / tabs)
+├── grg-lockup-line.svg # Ganges River Group lockup for the footer design credit (CSS mask)
 └── README.md           # This document
 ```
 

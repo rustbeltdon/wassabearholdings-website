@@ -105,6 +105,27 @@
       .footer-right { text-align: center; }
       #banner { padding: 16px 16px 26px; }
     }
+
+    /* ─── Design credit (copied from @kokkaco/theme DesignCredit.astro) ─── */
+    .grg-credit { margin: 4px 0 0; max-width: none; }
+    .grg-credit__unit { white-space: nowrap; }
+    .grg-credit__by { display: inline-block; max-width: 100%; }
+    .grg-credit__logo { display: inline-block; vertical-align: -4px; color: inherit; text-decoration: none; transition: opacity 0.2s ease; }
+    .grg-credit__logo > span {
+      display: block; width: 200px; aspect-ratio: 3187.57 / 313.8;
+      background-color: currentColor;
+      -webkit-mask: url("grg-lockup-line.svg") center / contain no-repeat;
+      mask: url("grg-lockup-line.svg") center / contain no-repeat;
+    }
+    .grg-credit__logo:hover, .grg-credit__logo:focus-visible { opacity: 0.75; text-decoration: none; }
+    .grg-credit__logo:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; }
+    @media (max-width: 40rem) {
+      .grg-credit { container-type: inline-size; flex: 1 1 100%; width: 100%; }
+      .grg-credit > span { font-size: clamp(9px, (100cqi - 206px) / var(--grg-credit-measure), 1em); }
+    }
+    @media (forced-colors: active) {
+      .grg-credit__logo > span { background-color: LinkText; forced-color-adjust: none; }
+    }
   </style>
 </head>
 <body>
@@ -122,6 +143,10 @@
   </div>
   <div class="footer-right">
     &copy; 2026 Wassa Bear Holdings LLC &mdash; All Rights Reserved &middot; Registered in Wyoming, USA
+  <p class="grg-credit" style="--grg-credit-measure: 15.8">
+      <span class="grg-credit__unit">Website Designed by</span>
+      <span class="grg-credit__by"><span class="grg-credit__unit"><a class="grg-credit__logo" href="https://gangesrivergroup.com" rel="noopener" aria-label="Ganges River Group"><span aria-hidden="true"></span></a>, a DBA of</span> <span class="grg-credit__unit">Kokka &amp; Company</span></span>
+    </p>
   </div>
 </footer>
 
